@@ -1,4 +1,4 @@
-name = "FAISS"
+name = "Faiss"
 uuid = "97d83715-92a6-43f6-a1c3-b293f6dd920a"
 authors = ["Christopher Doris <github.com/cjdoris>"]
 version = "0.1.0"

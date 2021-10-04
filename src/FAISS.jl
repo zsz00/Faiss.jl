@@ -1,24 +1,24 @@
 """
-    module FAISS
+    module Faiss
 
-An interface to the FAISS library for similarity-search of vectors (i.e. nearest-neighbour searching).
+An interface to the Faiss library for similarity-search of vectors (i.e. nearest-neighbour searching).
 
 For basic usage, see [`Index`](@ref), [`add!`](@ref) and [`search`](@ref).
 """
-module FAISS
+module Faiss
 
 using PythonCall
 
-const faiss = PythonCall.pynew()
+const Faiss = PythonCall.pynew()
 
 function __init__()
-    PythonCall.pycopy!(faiss, pyimport("faiss"))
+    PythonCall.pycopy!(Faiss, pyimport("Faiss"))
 end
 
 """
     Index(dim, spec="Flat")
 
-Create a FAISS index of the given dimension.
+Create a Faiss index of the given dimension.
 
 The `spec` is an index factory string describing the type of index to construct.
 """
@@ -34,7 +34,7 @@ function Base.show(io::IO, ::MIME"text/plain", x::Index)
     print(io, typeof(x), " of ", size(x, 2), " vectors of dimension ", size(x, 1))
 end
 
-Index(d::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(convert(Int, d), convert(String, str)))
+Index(d::Integer, str::AbstractString="Flat") = Index(Faiss.index_factory(convert(Int, d), convert(String, str)))
 
 """
     add!(idx::Index, vs::AbstractMatrix)
@@ -72,6 +72,6 @@ end
 
 Return the same index downcasted to its most specific type.
 """
-downcast(x::Index) = Index(faiss.downcast_index(x.py))
+downcast(x::Index) = Index(Faiss.downcast_index(x.py))
 
 end # module

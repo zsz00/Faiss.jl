@@ -9,10 +9,10 @@ module Faiss
 
 using PythonCall
 
-const Faiss = PythonCall.pynew()
+const faiss = PythonCall.pynew()
 
 function __init__()
-    PythonCall.pycopy!(Faiss, pyimport("Faiss"))
+    PythonCall.pycopy!(faiss, pyimport("faiss"))
 end
 
 """
@@ -34,7 +34,7 @@ function Base.show(io::IO, ::MIME"text/plain", x::Index)
     print(io, typeof(x), " of ", size(x, 2), " vectors of dimension ", size(x, 1))
 end
 
-Index(d::Integer, str::AbstractString="Flat") = Index(Faiss.index_factory(convert(Int, d), convert(String, str)))
+Index(d::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(convert(Int, d), convert(String, str)))
 
 """
     add!(idx::Index, vs::AbstractMatrix)
@@ -72,6 +72,6 @@ end
 
 Return the same index downcasted to its most specific type.
 """
-downcast(x::Index) = Index(Faiss.downcast_index(x.py))
+downcast(x::Index) = Index(faiss.downcast_index(x.py))
 
 end # module

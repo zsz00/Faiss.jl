@@ -1,0 +1,4 @@
+channels = ["conda-forge", "pytorch"]
+
+[deps]
+faiss-cpu = ">=1.7,<2"

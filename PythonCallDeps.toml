@@ -1,3 +1,0 @@
-[conda]
-packages = ["Faiss-cpu>=1.7,<2"]
-channels = ["conda-forge", "pytorch"]

@@ -8,11 +8,14 @@ For basic usage, see [`Index`](@ref), [`add!`](@ref) and [`search`](@ref).
 module Faiss
 
 using PythonCall
+export np, Index, add!, search, add_search, local_rank
 
 const faiss = PythonCall.pynew()
+const np = PythonCall.pynew()
 
 function __init__()
     PythonCall.pycopy!(faiss, pyimport("faiss"))
+    PythonCall.pycopy!(np, pyimport("numpy"))
 end
 
 """
@@ -26,26 +29,54 @@ struct Index
     py::Py
 end
 
-Base.size(x::Index) = (size(x, 1), size(x, 2))
+# Advanced API
+Index(d::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(convert(Int, d), convert(String, str)))
 
-Base.size(x::Index, i::Integer) = i == 1 ? pyconvert(Int, x.py.d) : i == 2 ? pyconvert(Int, x.py.ntotal) : error()
-
-function Base.show(io::IO, ::MIME"text/plain", x::Index)
-    print(io, typeof(x), " of ", size(x, 2), " vectors of dimension ", size(x, 1))
+# Basic API
+function Index(feat_dim::Integer, gpus::String)
+    # feat数据存储在这里面. 数据量巨大时,容易爆显存
+    if gpus == ""
+        ngpus = 0
+    else
+        ngpus = length(split(gpus, ","))
+    end
+    if ngpus == 0
+        cpu_index = faiss.IndexFlatL2(feat_dim)
+        index = cpu_index
+    elseif ngpus == 1
+        flat_config = faiss.GpuIndexFlatConfig()
+        flat_config.device = 0  # int(gpus[0])
+        res = faiss.StandardGpuResources()
+        index = faiss.GpuIndexFlatL2(res, feat_dim, flat_config)  # use one gpu.  初始化很慢
+    else
+        # print('use all gpu')
+        cpu_index = faiss.IndexFlatL2(feat_dim)
+        index = faiss.index_cpu_to_all_gpus(cpu_index)  # use all gpus
+    end
+    Index(index)
 end
 
-Index(d::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(convert(Int, d), convert(String, str)))
+Base.size(idx::Index) = (size(idx, 1), size(idx, 2))
+
+Base.size(idx::Index, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ? pyconvert(Int, idx.py.ntotal) : error()
+
+function Base.show(io::IO, ::MIME"text/plain", idx::Index)
+    print(io, typeof(idx), " of ", size(idx, 2), " vectors of dimension ", size(idx, 1))
+end
+
 
 """
     add!(idx::Index, vs::AbstractMatrix)
 
 Add the columns of `vs` to the index.
 """
-function add!(x::Index, vs::AbstractMatrix)
-    size(vs, 1) == size(x, 1) || error("expecting $(size(x, 1)) rows")
-    vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
-    x.py.add(vs_)
-    return x
+function add!(idx::Index, vs::AbstractMatrix)
+    size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
+    # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
+    vs_ = convert(AbstractMatrix{Float32}, vs)
+    vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
+    idx.py.add(vs_)
+    return idx
 end
 
 """
@@ -57,21 +88,65 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of
 distances.
 """
-function search(x::Index, vs::AbstractMatrix, k::Integer)
-    size(vs, 1) == size(x, 1) || error("expecting $(size(x, 1)) rows")
-    vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
+function search(idx::Index, vs::AbstractMatrix, k::Integer)
+    size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
+    # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
+    vs_ = convert(AbstractMatrix{Float32}, vs)
+    vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
     k_ = convert(Int, k)
-    D_, I_ = x.py.search(vs_, k_)
-    D = PyArray{Float32,2,true,true,Float32}(D_.T)
-    I = PyArray{Int64,2,true,true,Int64}(I_.T)
+
+    D_, I_ = idx.py.search(vs_, k_)
+
+    D = pyconvert(Array{Float32, 2}, D_) 
+    I = pyconvert(Array{Int64, 2}, I_)
     return (D, I)
 end
+
+
+"""
+    add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; 
+                k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
+
+Add `vs_gallery` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
+
+Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k` nearest
+neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
+"""
+function add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; 
+                    k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
+    if flag
+        add!(idx, vs_gallery)
+    end
+    D, I = search(idx, vs_query, k) 
+    if metric == "cos"
+        D = 1.0 .- D / 2.0   # 转换为cos相似度
+    end
+    return (D, I)
+end
+
+"""
+    local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
+                metric::AbstractString="cos", gpus::AbstractString="")
+
+Create Index and Add `vs_gallery` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
+
+Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k` nearest
+neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
+"""
+function local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
+                    metric::AbstractString="cos", gpus::AbstractString="")
+    feat_dim = size(vs_query, 2)
+    idx = Index(feat_dim, gpus)
+    D, I = add_search(idx, vs_query, vs_gallery; k=k, metric=metric)
+    return (D, I)
+end
+
 
 """
     downcast(idx::Index)
 
 Return the same index downcasted to its most specific type.
 """
-downcast(x::Index) = Index(faiss.downcast_index(x.py))
+downcast(idx::Index) = Index(faiss.downcast_index(idx.py))
 
 end # module

@@ -3,12 +3,12 @@
 
 An interface to the Faiss library for similarity-search of vectors (i.e. nearest-neighbour searching).
 
-For basic usage, see [`Index`](@ref), [`add!`](@ref) and [`search`](@ref).
+For basic usage, see [`Index`](@ref), [`add`](@ref) and [`search`](@ref).
 """
 module Faiss
 
 using PythonCall
-export np, Index, add!, search, add_search, local_rank
+export np, Index, add, search, add_search, local_rank, add_with_ids, remove_with_ids, add_search_with_ids
 
 const faiss = PythonCall.pynew()
 const np = PythonCall.pynew()
@@ -47,12 +47,12 @@ function Index(feat_dim::Integer, gpus::String)
         flat_config = faiss.GpuIndexFlatConfig()
         flat_config.device = 0  # int(gpus[0])
         res = faiss.StandardGpuResources()
-        index = faiss.GpuIndexFlatL2(res, feat_dim, flat_config)  # use one gpu.  初始化很慢
+        index = faiss.GpuIndexFlatL2(res, feat_dim, flat_config)  # use one gpu. 
     else
-        # print('use all gpu')
         cpu_index = faiss.IndexFlatL2(feat_dim)
         index = faiss.index_cpu_to_all_gpus(cpu_index)  # use all gpus
     end
+    index = faiss.IndexIDMap2(index)
     Index(index)
 end
 
@@ -66,17 +66,41 @@ end
 
 
 """
-    add!(idx::Index, vs::AbstractMatrix)
+    add(idx::Index, vs::AbstractMatrix)
 
 Add the columns of `vs` to the index.
 """
-function add!(idx::Index, vs::AbstractMatrix)
+function add(idx::Index, vs::AbstractMatrix)
     size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
     # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
     vs_ = convert(AbstractMatrix{Float32}, vs)
     vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
     idx.py.add(vs_)
     return idx
+end
+
+"""
+    add_with_ids(idx::Index, vs::AbstractMatrix, ids::Array{Int64})
+
+"""
+function add_with_ids(idx::Index, vs::AbstractMatrix, ids::Array{Int64})
+    size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
+    size(vs, 1) == size(ids, 1) || error("expecting $(size(vs, 1)) rows")
+    # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
+    vs_ = convert(AbstractMatrix{Float32}, vs)
+    vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
+    ids_ = np.array(pyrowlist(ids), dtype=np.int64)
+    idx.py.add_with_ids(vs_, ids_)
+    return idx
+end
+
+"""
+    remove_with_ids(idx::Index, ids::Array{Int64})
+
+"""
+function remove_with_ids(idx::Index, ids::Array{Int64})
+    ids_ = np.array(pyrowlist(ids), dtype=np.int64)
+    idx.remove_ids(ids_)
 end
 
 """
@@ -88,7 +112,7 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of
 distances.
 """
-function search(idx::Index, vs::AbstractMatrix, k::Integer)
+function search(idx::Index, vs::AbstractMatrix, k::Integer; metric::AbstractString="cos")
     size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
     # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
     vs_ = convert(AbstractMatrix{Float32}, vs)
@@ -99,6 +123,9 @@ function search(idx::Index, vs::AbstractMatrix, k::Integer)
 
     D = pyconvert(Array{Float32, 2}, D_) 
     I = pyconvert(Array{Int64, 2}, I_)
+    if metric == "cos"
+        D = 1.0 .- D / 2.0   # 转换为cos相似度
+    end
     return (D, I)
 end
 
@@ -115,12 +142,20 @@ neighbours of the corresponding column of `vs` and `D` is the corresponding matr
 function add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; 
                     k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
     if flag
-        add!(idx, vs_gallery)
+        add(idx, vs_gallery)
     end
     D, I = search(idx, vs_query, k) 
-    if metric == "cos"
-        D = 1.0 .- D / 2.0   # 转换为cos相似度
+
+    return (D, I)
+end
+
+function add_search_with_ids(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
+    k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
+    if flag
+        add_with_ids(idx, vs_gallery, ids)
     end
+    D, I = search(idx, vs_query, k) 
+    
     return (D, I)
 end
 

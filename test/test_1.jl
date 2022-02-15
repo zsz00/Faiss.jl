@@ -16,16 +16,21 @@ function test()
 
     feat_dim = size(feats, 2)
     idx = Index(feat_dim, "4")
-
+    k = 10
     @showprogress for i in range(1, 1000)
         vs_gallery = feats[100*i+1:100*(i+1),:]
         # println(typeof(feats), size(feats))
         vs_query = vs_gallery
         
-        D, I = add_search(idx, vs_query, vs_gallery; k=10, flag=true, metric="cos")
+        # D, I = add_search(idx, vs_query, vs_gallery; k=10, flag=true, metric="cos")
+        # D, I = add_search_with_ids(idx, vs_query, vs_gallery; k=10)
+        ids = collect(range(100*i+1, 100*(i+1))) .+ 100
+        println(typeof(ids), size(ids))
+        add_with_ids(idx, vs_gallery, ids)
+        D, I = search(idx, vs_query, k) 
         # println(typeof(D), size(D))
-        # println(typeof(I), size(I))
-        # println(D)
+        println(typeof(I), size(I))
+        println(I[1:2, 1:5])
     end
 end
 

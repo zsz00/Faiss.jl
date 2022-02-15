@@ -44,10 +44,9 @@ function Index(feat_dim::Integer, gpus::String)
         cpu_index = faiss.IndexFlatL2(feat_dim)
         index = cpu_index
     elseif ngpus == 1
-        flat_config = faiss.GpuIndexFlatConfig()
-        flat_config.device = 0  # int(gpus[0])
         res = faiss.StandardGpuResources()
-        index = faiss.GpuIndexFlatL2(res, feat_dim, flat_config)  # use one gpu. 
+        index_flat = faiss.IndexFlatL2(feat_dim)
+        index = faiss.index_cpu_to_gpu(res, 0, index_flat)  # use one gpu. make it into a gpu index
     else
         cpu_index = faiss.IndexFlatL2(feat_dim)
         index = faiss.index_cpu_to_all_gpus(cpu_index)  # use all gpus
@@ -122,7 +121,7 @@ function search(idx::Index, vs::AbstractMatrix, k::Integer; metric::AbstractStri
     D_, I_ = idx.py.search(vs_, k_)
 
     D = pyconvert(Array{Float32, 2}, D_) 
-    I = pyconvert(Array{Int64, 2}, I_)
+    I = pyconvert(Array{Int32, 2}, I_)
     if metric == "cos"
         D = 1.0 .- D / 2.0   # 转换为cos相似度
     end

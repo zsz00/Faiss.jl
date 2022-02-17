@@ -103,7 +103,7 @@ end
 """
 function remove_with_ids(idx::Index, ids::Array{Int64})
     ids_ = np.array(pyrowlist(ids), dtype=np.int64)
-    idx.remove_ids(ids_)
+    idx.py.remove_ids(ids_)
 end
 
 """

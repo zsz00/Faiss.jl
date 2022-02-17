@@ -35,10 +35,12 @@ Index(d::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(conver
 # Basic API
 function Index(feat_dim::Integer, gpus::String)
     # feat数据存储在这里面. 数据量巨大时,容易爆显存
+    ENV["CUDA_VISIBLE_DEVICES"] = gpus
+    println("faiss: ", faiss.__version__, " gpus:", os.environ["CUDA_VISIBLE_DEVICES"])
     if gpus == ""
         ngpus = 0
     else
-        ngpus = length(split(gpus, ","))
+        ngpus = length(split(ENV["CUDA_VISIBLE_DEVICES"], ","))
     end
     if ngpus == 0
         cpu_index = faiss.IndexFlatL2(feat_dim)
@@ -118,10 +120,15 @@ function search(idx::Index, vs::AbstractMatrix, k::Integer; metric::AbstractStri
     vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
     k_ = convert(Int, k)
 
-    D_, I_ = idx.py.search(vs_, k_)
-
-    D = pyconvert(Array{Float32, 2}, D_) 
-    I = pyconvert(Array{Int32, 2}, I_)
+    if idx.py.ntotal == 0
+        size_1 = size(vs, 1)
+        D = zeros(Float32, (size_1, k)) .+ 2
+        I = zeros(Int32, (size_1, k))
+    else
+        D_, I_ = idx.py.search(vs_, k_)
+        D = pyconvert(Array{Float32, 2}, D_) 
+        I = pyconvert(Array{Int32, 2}, I_)
+    end
     if metric == "cos"
         D = 1.0 .- D / 2.0   # 转换为cos相似度
     end

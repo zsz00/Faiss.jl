@@ -120,7 +120,7 @@ function search(idx::Index, vs::AbstractMatrix, k::Integer; metric::AbstractStri
     vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
     k_ = convert(Int, k)
 
-    if idx.py.ntotal == 0
+    if pyconvert(Int64, idx.py.ntotal) == 0
         size_1 = size(vs, 1)
         D = zeros(Float32, (size_1, k)) .+ 2
         I = zeros(Int32, (size_1, k))

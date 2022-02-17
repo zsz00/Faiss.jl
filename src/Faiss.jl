@@ -36,7 +36,7 @@ Index(d::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(conver
 function Index(feat_dim::Integer, gpus::String)
     # feat数据存储在这里面. 数据量巨大时,容易爆显存
     ENV["CUDA_VISIBLE_DEVICES"] = gpus
-    println("faiss: ", faiss.__version__, " gpus:", os.environ["CUDA_VISIBLE_DEVICES"])
+    println("faiss:", faiss.__version__, " gpus:", ENV["CUDA_VISIBLE_DEVICES"])
     if gpus == ""
         ngpus = 0
     else

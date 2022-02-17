@@ -29,7 +29,7 @@ struct Index
     py::Py
 end
 
-# Advanced API
+# Advanced API, index_factory
 Index(d::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(convert(Int, d), convert(String, str)))
 
 # Basic API
@@ -157,6 +157,13 @@ function add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMa
     return (D, I)
 end
 
+"""
+    add_search_with_ids(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
+                        k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
+
+Add `vs_gallery` with `ids` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
+
+"""
 function add_search_with_ids(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
     k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
     if flag

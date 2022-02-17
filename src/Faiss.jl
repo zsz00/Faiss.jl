@@ -33,7 +33,7 @@ end
 Index(d::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(convert(Int, d), convert(String, str)))
 
 # Basic API
-function Index(feat_dim::Integer, gpus::String)
+function Index(feat_dim::Integer, gpus::String; flag::String="")
     # feat数据存储在这里面. 数据量巨大时,容易爆显存
     ENV["CUDA_VISIBLE_DEVICES"] = gpus
     println("faiss:", faiss.__version__, " gpus:", ENV["CUDA_VISIBLE_DEVICES"])
@@ -53,7 +53,9 @@ function Index(feat_dim::Integer, gpus::String)
         cpu_index = faiss.IndexFlatL2(feat_dim)
         index = faiss.index_cpu_to_all_gpus(cpu_index)  # use all gpus
     end
-    index = faiss.IndexIDMap2(index)
+    if flag == "IDMap2"
+        index = faiss.IndexIDMap2(index)
+    end
     Index(index)
 end
 

@@ -22,12 +22,12 @@ function test()
         # println(typeof(feats), size(feats))
         vs_query = vs_gallery
         
-        # D, I = add_search(idx, vs_query, vs_gallery; k=10, flag=true, metric="cos")
+        D, I = add_search(idx, vs_query, vs_gallery; k=10, flag=true, metric="cos")
         # D, I = add_search_with_ids(idx, vs_query, vs_gallery; k=10)
-        ids = collect(range(100*i+1, 100*(i+1))) .+ 100
-        println(typeof(ids), size(ids))
-        add_with_ids(idx, vs_gallery, ids)
-        D, I = search(idx, vs_query, k) 
+        # ids = collect(range(100*i+1, 100*(i+1))) .+ 100
+        # println(typeof(ids), size(ids))
+        # add_with_ids(idx, vs_gallery, ids)
+        # D, I = search(idx, vs_query, k) 
         # println(typeof(D), size(D))
         println(typeof(I), size(I))
         println(I[1:2, 1:5])

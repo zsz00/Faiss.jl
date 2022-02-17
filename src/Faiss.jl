@@ -29,12 +29,22 @@ struct Index
     py::Py
 end
 
-# Advanced API, index_factory
-Index(d::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(convert(Int, d), convert(String, str)))
+# cpu index
+Index(dim::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(convert(Int, dim), convert(String, str)))
 
-# Basic API
-function Index(feat_dim::Integer, gpus::String; flag::String="")
+
+function Index(dim::Integer; str::AbstractString="Flat", gpus::String="")
     # feat数据存储在这里面. 数据量巨大时,容易爆显存
+    str_list = split(str, ",")
+    if "IDMap2" in str_list
+        str = join(str_list[str_list .!="IDMap2"] , ",")  # py faiss not support IDMap2.
+        cpu_index = Index(dim, str)
+        cpu_index = faiss.IndexIDMap2(cpu_index.py)
+    else
+        cpu_index = Index(dim, str)
+        cpu_index = cpu_index.py
+    end
+
     ENV["CUDA_VISIBLE_DEVICES"] = gpus
     # println("faiss:", faiss.__version__, " gpus:", ENV["CUDA_VISIBLE_DEVICES"])
     if gpus == ""
@@ -42,19 +52,14 @@ function Index(feat_dim::Integer, gpus::String; flag::String="")
     else
         ngpus = length(split(ENV["CUDA_VISIBLE_DEVICES"], ","))
     end
+    
     if ngpus == 0
-        cpu_index = faiss.IndexFlatL2(feat_dim)
         index = cpu_index
     elseif ngpus == 1
         res = faiss.StandardGpuResources()
-        index_flat = faiss.IndexFlatL2(feat_dim)
-        index = faiss.index_cpu_to_gpu(res, 0, index_flat)  # use one gpu. make it into a gpu index
+        index = faiss.index_cpu_to_gpu(res, 0, cpu_index)  # use one gpu. make it into a gpu index
     else
-        cpu_index = faiss.IndexFlatL2(feat_dim)
         index = faiss.index_cpu_to_all_gpus(cpu_index)  # use all gpus
-    end
-    if flag == "IDMap2"
-        index = faiss.IndexIDMap2(index)
     end
     Index(index)
 end
@@ -186,7 +191,7 @@ neighbours of the corresponding column of `vs` and `D` is the corresponding matr
 function local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
                     metric::AbstractString="cos", gpus::AbstractString="")
     feat_dim = size(vs_query, 2)
-    idx = Index(feat_dim, gpus)
+    idx = Index(feat_dim; str="Flat", gpus=gpus)
     D, I = add_search(idx, vs_query, vs_gallery; k=k, metric=metric)
     return (D, I)
 end

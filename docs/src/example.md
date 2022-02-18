@@ -1,27 +1,6 @@
-# Faiss.jl
+# Faiss.jl usage examples
 
-A simple Julia wrapper around the [Faiss](https://github.com/facebookresearch/Faiss) library for similarity search with [`PythonCall.jl`](https://github.com/cjdoris/PythonCall.jl).
-
-While functional and faster then [`NearestNeighbors.jl`](https://github.com/KristofferC/NearestNeighbors.jl).
-
-Faiss is a library for efficient similarity search and clustering of dense vectors. It contains algorithms that search in sets of vectors of any size, up to ones that possibly do not fit in RAM. It also contains supporting code for evaluation and parameter tuning. Faiss is written in C++ with complete wrappers for Python/numpy. Some of the most useful algorithms are implemented on the GPU. It is developed primarily at Facebook AI Research.
-
-
-## Installation
-
-The package can be installed with the Julia package manager.
-From the Julia REPL, type `]` to enter the Pkg REPL mode and run:
-
-```
-pkg> add Faiss
-```
-if use a already existed python env, you can:
-```
-julia> ENV["JULIA_PYTHONCALL_EXE"] = "/your/path/of/python"
-pkg> add Faiss
-```
-
-## usage
+## example 1 
 ```julia
 using Faiss
 
@@ -46,5 +25,63 @@ println(typeof(D), size(D))
 println(D[1:5, :])
 ```
 
+## example 2
+```julia
+using Faiss
 
-- [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
+feats = rand(10^4, 128);
+top_k = 10
+vs_gallery = feats;
+vs_query = feats[1:100, :];
+ids = collect(range(1, size(feats, 1)))
+
+D, I = local_rank(vs_query, vs_gallery, k=top_k, metric="IP", gpus="")
+
+println(typeof(D), size(D))
+println(D[1:5, :])
+
+```
+
+## example 3
+```julia
+
+ENV["JULIA_PYTHONCALL_EXE"] = "/home/zhangyong/miniconda3/bin/python"
+using Faiss
+using PythonCall
+using ProgressMeter
+# np = pyimport("numpy")
+
+
+function test()
+    dir_1 = "/mnt/zy_data/data/longhu_1/sorted_2/"
+    feats = np.load(joinpath(dir_1, "feats.npy"))
+    println(typeof(feats), feats.shape)
+    feats = pyconvert(Array{Float32, 2}, feats)
+    # D, I = local_rank(vs_query, vs_gallery, k=10, gpus="")
+
+    feat_dim = size(feats, 2)
+    idx = Index(feat_dim; str="IDMap2,Flat", metric="L2", gpus="4")  # IDMap2. L2,IP
+    Faiss.show(idx)
+    k = 10
+    @showprogress for i in range(1, 1000)
+        vs_gallery = feats[100*i+1:100*(i+1),:]
+        # println(typeof(feats), size(feats))
+        vs_query = vs_gallery
+        
+        # D, I = add_search(idx, vs_query, vs_gallery; k=10, flag=true, metric="cos")
+        # D, I = add_search_with_ids(idx, vs_query, vs_gallery; k=10)
+        ids = collect(range(100*i+1, 100*(i+1))) .+ 100
+        println(typeof(ids), size(ids))
+        add_with_ids(idx, vs_gallery, ids)
+        D, I = search(idx, vs_query, k) 
+        # println(typeof(D), size(D))
+        # println(typeof(I), size(I))
+    end
+end
+
+@time test()
+
+```
+
+
+

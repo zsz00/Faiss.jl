@@ -190,7 +190,7 @@ end
 
 """
     local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
-                metric::AbstractString="cos", gpus::AbstractString="")
+                str::String="Flat", metric::String="L2", gpus::String="")
 
 Create Index and Add `vs_gallery` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
 
@@ -198,9 +198,9 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
 """
 function local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
-                    metric::String="L2", gpus::String="")
+                    str::String="Flat", metric::String="L2", gpus::String="")
     feat_dim = size(vs_query, 2)
-    idx = Index(feat_dim; str="Flat", metric=metric, gpus=gpus)
+    idx = Index(feat_dim; str=str, metric=metric, gpus=gpus)
     D, I = add_search(idx, vs_query, vs_gallery; k=k)
     return (D, I)
 end

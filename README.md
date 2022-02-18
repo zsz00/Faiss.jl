@@ -1,6 +1,6 @@
 # Faiss.jl
 
-A simple Julia wrapper around the [Faiss](https://github.com/facebookresearch/Faiss) library for similarity search whith [`PythonCall.jl`](https://github.com/cjdoris/PythonCall.jl).
+A simple Julia wrapper around the [Faiss](https://github.com/facebookresearch/Faiss) library for similarity search with [`PythonCall.jl`](https://github.com/cjdoris/PythonCall.jl).
 
 While functional and faster then [`NearestNeighbors.jl`](https://github.com/KristofferC/NearestNeighbors.jl).
 
@@ -17,13 +17,17 @@ pkg> add Faiss
 ```
 if use a already existed python env, you can:
 ```
-julia> ENV["JULIA_PYTHONCALL_EXE"] = "your/path/of/python"
+julia> ENV["JULIA_PYTHONCALL_EXE"] = "/your/path/of/python"
 pkg> add Faiss
 ```
 
 ## usage
 ```julia
 using Faiss
+
+println("faiss:", Faiss.faiss.__version__, ", gpus:", ENV["CUDA_VISIBLE_DEVICES"], 
+        ", faiss path:", Faiss.faiss.__path__[0], ", num_gpus:", Faiss.faiss.get_num_gpus())
+# Faiss.faiss.  Enter Tab to list faiss api
 
 feats = rand(10^4, 128);
 top_k = 10

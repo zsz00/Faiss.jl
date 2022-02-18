@@ -3,3 +3,4 @@ channels = ["conda-forge", "pytorch"]
 [deps]
 numpy = ">1.10"
 faiss-cpu = ">=1.7,<2"
+# faiss-gpu = ">=1.7,<2"

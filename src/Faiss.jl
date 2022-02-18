@@ -77,7 +77,7 @@ Base.size(idx::Index, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ?
 
 function Base.show(io::IO, ::MIME"text/plain", idx::Index)
     metric_dict = Dict(1=>"METRIC_L2", 2=>"METRIC_INNER_PRODUCT")
-    println(io, typeof(idx.py), " of ", size(idx.py, 2), " vectors of dimension ", size(idx.py, 1), 
+    println(io, typeof(idx), " of ", size(idx, 2), " vectors of dimension ", size(idx, 1), 
     " metric_type:", metric_dict[dix.py.metric_type])
 end
 

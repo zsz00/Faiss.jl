@@ -30,18 +30,26 @@ struct Index
 end
 
 # cpu index
-Index(dim::Integer, str::AbstractString="Flat") = Index(faiss.index_factory(convert(Int, dim), convert(String, str)))
+Index(dim::Integer, str::AbstractString="Flat", metric::Integer=1) = 
+    Index(faiss.index_factory(convert(Int, dim), convert(String, str), metric))
 
 
-function Index(dim::Integer; str::AbstractString="Flat", gpus::String="")
+function Index(dim::Integer; str::AbstractString="Flat", gpus::String="", metric::String="L2")
     # feat数据存储在这里面. 数据量巨大时,容易爆显存
+    
+    if metric == "L2"
+        metric_flag = faiss.METRIC_L2   # 1
+    elseif metric == "IP"
+        metric_flag = faiss.METRIC_INNER_PRODUCT  # 2
+    end
+    metric_flag = pyconvert(Integer, metric_flag)
     str_list = split(str, ",")
     if "IDMap2" in str_list
         str = join(str_list[str_list .!="IDMap2"] , ",")  # py faiss not support IDMap2.
-        cpu_index = Index(dim, str)
+        cpu_index = Index(dim, str, metric_flag)
         cpu_index = faiss.IndexIDMap2(cpu_index.py)
     else
-        cpu_index = Index(dim, str)
+        cpu_index = Index(dim, str, metric_flag)
         cpu_index = cpu_index.py
     end
 
@@ -69,9 +77,10 @@ Base.size(idx::Index) = (size(idx, 1), size(idx, 2))
 Base.size(idx::Index, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ? pyconvert(Int, idx.py.ntotal) : error()
 
 function Base.show(io::IO, ::MIME"text/plain", idx::Index)
-    print(io, typeof(idx), " of ", size(idx, 2), " vectors of dimension ", size(idx, 1))
+    metric_dict = Dict(1:"METRIC_L2", 2:"METRIC_INNER_PRODUCT")
+    println(io, typeof(idx.py), " of ", size(idx.py, 2), " vectors of dimension ", size(idx.py, 1), 
+    " metric_type:", metric_dict[dix.py.metric_type])
 end
-
 
 """
     add(idx::Index, vs::AbstractMatrix)
@@ -120,7 +129,7 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of
 distances.
 """
-function search(idx::Index, vs::AbstractMatrix, k::Integer; metric::AbstractString="cos")
+function search(idx::Index, vs::AbstractMatrix, k::Integer)
     size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
     # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
     vs_ = convert(AbstractMatrix{Float32}, vs)
@@ -129,16 +138,17 @@ function search(idx::Index, vs::AbstractMatrix, k::Integer; metric::AbstractStri
 
     if pyconvert(Int64, idx.py.ntotal) == 0
         size_1 = size(vs, 1)
-        D = zeros(Float32, (size_1, k)) .+ 2
+        D = zeros(Float32, (size_1, k))
         I = zeros(Int32, (size_1, k))
+        if pyconvert(Int64, idx.py.metric_type) == 1
+            D = D .+ 2
+        end
     else
         D_, I_ = idx.py.search(vs_, k_)
         D = pyconvert(Array{Float32, 2}, D_) 
         I = pyconvert(Array{Int32, 2}, I_)
     end
-    if metric == "cos"
-        D = 1.0 .- D / 2.0   # 转换为cos相似度
-    end
+
     return (D, I)
 end
 
@@ -153,7 +163,7 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
 """
 function add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; 
-                    k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
+                    k::Integer=100, flag::Bool=true)
     if flag
         add(idx, vs_gallery)
     end
@@ -170,7 +180,7 @@ Add `vs_gallery` with `ids` to idx and Search the index for the `k` nearest neig
 
 """
 function add_search_with_ids(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
-    k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
+    k::Integer=100, flag::Bool=true)
     if flag
         add_with_ids(idx, vs_gallery, ids)
     end
@@ -189,10 +199,10 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
 """
 function local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
-                    metric::AbstractString="cos", gpus::AbstractString="")
+                    metric::String="L2", gpus::String="")
     feat_dim = size(vs_query, 2)
-    idx = Index(feat_dim; str="Flat", gpus=gpus)
-    D, I = add_search(idx, vs_query, vs_gallery; k=k, metric=metric)
+    idx = Index(feat_dim; str="Flat", gpus=gpus, metric=metric)
+    D, I = add_search(idx, vs_query, vs_gallery; k=k)
     return (D, I)
 end
 

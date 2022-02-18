@@ -33,7 +33,7 @@ show(idx)   # show idx info
 
 vs_gallery = feats
 vs_query = feats[1:100, :]
-ids = collect(range(1, size(feats, 1))
+ids = collect(range(1, size(feats, 1)))
 
 # add(idx, vs_gallery)
 add_with_ids(idx, vs_gallery, ids)

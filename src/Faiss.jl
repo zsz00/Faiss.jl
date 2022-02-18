@@ -78,7 +78,7 @@ Base.size(idx::Index, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ?
 function Base.show(io::IO, ::MIME"text/plain", idx::Index)
     metric_dict = Dict(1=>"METRIC_L2", 2=>"METRIC_INNER_PRODUCT")
     println(io, typeof(idx), " of ", size(idx, 2), " vectors of dimension ", size(idx, 1), 
-    " metric_type:", metric_dict[dix.py.metric_type])
+    " metric_type:", metric_dict[idx.py.metric_type])
 end
 
 """
@@ -92,7 +92,7 @@ function add(idx::Index, vs::AbstractMatrix)
     vs_ = convert(AbstractMatrix{Float32}, vs)
     vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
     idx.py.add(vs_)
-    return idx
+    return nothing
 end
 
 """
@@ -107,7 +107,7 @@ function add_with_ids(idx::Index, vs::AbstractMatrix, ids::Array{Int64})
     vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
     ids_ = np.array(pyrowlist(ids), dtype=np.int64)
     idx.py.add_with_ids(vs_, ids_)
-    return idx
+    return nothing
 end
 
 """

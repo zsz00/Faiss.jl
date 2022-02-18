@@ -8,7 +8,7 @@ For basic usage, see [`Index`](@ref), [`add`](@ref), [`search`](@ref), [`add_wit
 module Faiss
 
 using PythonCall
-export np, Index, add, search, add_search, local_rank, add_with_ids, remove_with_ids, add_search_with_ids
+export np, Index, add, search, add_with_ids, remove_with_ids, add_search, local_rank, add_search_with_ids
 
 const faiss = PythonCall.pynew()
 const np = PythonCall.pynew()
@@ -76,7 +76,7 @@ Base.size(idx::Index) = (size(idx, 1), size(idx, 2))
 Base.size(idx::Index, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ? pyconvert(Int, idx.py.ntotal) : error()
 
 function Base.show(io::IO, ::MIME"text/plain", idx::Index)
-    metric_dict = Dict(1:"METRIC_L2", 2:"METRIC_INNER_PRODUCT")
+    metric_dict = Dict(1=>"METRIC_L2", 2=>"METRIC_INNER_PRODUCT")
     println(io, typeof(idx.py), " of ", size(idx.py, 2), " vectors of dimension ", size(idx.py, 1), 
     " metric_type:", metric_dict[dix.py.metric_type])
 end

@@ -46,7 +46,5 @@ println(typeof(D), size(D))
 println(D[1:5, :])
 ```
 
-## Documentation
 
 - [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
-- [**LATEST**](docs-dev-url) &mdash; *in-development version of the documentation.* (under construction)

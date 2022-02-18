@@ -25,24 +25,25 @@ pkg> add Faiss
 ```julia
 using Faiss
 
-feats = rand(10^4, 128)
+feats = rand(10^4, 128);
 top_k = 10
-feat_dim = size(feats, 2)   # # dimension
+feat_dim = size(feats, 2)   # dimension
 idx = Index(feat_dim; str="IDMap2,Flat", metric="L2", gpus="4")  # init Faiss Index
 show(idx)   # show idx info
 
-vs_gallery = feats
-vs_query = feats[1:100, :]
+vs_gallery = feats;
+vs_query = feats[1:100, :];
 ids = collect(range(1, size(feats, 1)))
 
 # add(idx, vs_gallery)
 add_with_ids(idx, vs_gallery, ids)
 D, I = search(idx, vs_query, top_k) 
 println(typeof(D), size(D))
+println(D[1:5, :])
 ```
 
 ## Documentation
 
-[Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
-- **STABLE** &mdash; **most recently tagged version of the documentation.** (under construction)
-- [**LATEST**][docs-dev-url] &mdash; *in-development version of the documentation.*
+- [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
+- [**STABLE**](docs-stable-url) &mdash; **most recently tagged version of the documentation.** (under construction)
+- [**LATEST**](docs-dev-url) &mdash; *in-development version of the documentation.*

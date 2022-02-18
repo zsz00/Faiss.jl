@@ -68,7 +68,7 @@ function Index(dim::Integer; str::AbstractString="Flat", metric::String="L2", gp
     else
         index = faiss.index_cpu_to_all_gpus(cpu_index)  # use all gpus
     end
-    Index(index)
+    return Index(index)
 end
 
 Base.size(idx::Index) = (size(idx, 1), size(idx, 2))
@@ -78,7 +78,7 @@ Base.size(idx::Index, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ?
 function Base.show(io::IO, ::MIME"text/plain", idx::Index)
     metric_dict = Dict(1=>"METRIC_L2", 2=>"METRIC_INNER_PRODUCT")
     println(io, typeof(idx), " of ", size(idx, 2), " vectors of dimension ", size(idx, 1), 
-    " metric_type:", metric_dict[idx.py.metric_type])
+    ", metric_type:", metric_dict[pyconvert(Int64, idx.py.metric_type)])
 end
 
 """

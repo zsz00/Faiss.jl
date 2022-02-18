@@ -14,7 +14,7 @@ function test()
     # D, I = local_rank(vs_query, vs_gallery, k=10, gpus="")
 
     feat_dim = size(feats, 2)
-    idx = Index(feat_dim; str="IDMap2,Flat", gpus="4", metric="L2")  # IDMap2. L2,IP
+    idx = Index(feat_dim; str="IDMap2,Flat", metric="L2", gpus="4")  # IDMap2. L2,IP
     Faiss.show(idx)
     k = 10
     @showprogress for i in range(1, 1000)
@@ -33,7 +33,7 @@ function test()
         if i == 2
             println(D[1:2, 1:5])
             println(I[1:2, 1:5])
-            break
+            # break
         end
     end
 end

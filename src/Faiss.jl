@@ -34,9 +34,9 @@ Index(dim::Integer, str::AbstractString="Flat", metric::Integer=1) =
     Index(faiss.index_factory(convert(Int, dim), convert(String, str), metric))
 
 
-function Index(dim::Integer; str::AbstractString="Flat", gpus::String="", metric::String="L2")
+function Index(dim::Integer; str::AbstractString="Flat", metric::String="L2", gpus::String="")
     # feat数据存储在这里面. 数据量巨大时,容易爆显存
-    
+    ENV["CUDA_VISIBLE_DEVICES"] = gpus
     if metric == "L2"
         metric_flag = faiss.METRIC_L2   # 1
     elseif metric == "IP"
@@ -53,7 +53,6 @@ function Index(dim::Integer; str::AbstractString="Flat", gpus::String="", metric
         cpu_index = cpu_index.py
     end
 
-    ENV["CUDA_VISIBLE_DEVICES"] = gpus
     # println("faiss:", faiss.__version__, " gpus:", ENV["CUDA_VISIBLE_DEVICES"])
     if gpus == ""
         ngpus = 0
@@ -201,7 +200,7 @@ neighbours of the corresponding column of `vs` and `D` is the corresponding matr
 function local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
                     metric::String="L2", gpus::String="")
     feat_dim = size(vs_query, 2)
-    idx = Index(feat_dim; str="Flat", gpus=gpus, metric=metric)
+    idx = Index(feat_dim; str="Flat", metric=metric, gpus=gpus)
     D, I = add_search(idx, vs_query, vs_gallery; k=k)
     return (D, I)
 end

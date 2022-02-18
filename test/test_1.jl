@@ -2,7 +2,6 @@ ENV["JULIA_PYTHONCALL_EXE"] = "/home/zhangyong/miniconda3/bin/python"
 using Faiss
 using PythonCall
 using ProgressMeter
-# sys = pyimport("sys")
 # np = pyimport("numpy")
 
 

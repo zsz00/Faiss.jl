@@ -3,7 +3,7 @@
 
 An interface to the Faiss library for similarity-search of vectors (i.e. nearest-neighbour searching).
 
-For basic usage, see [`Index`](@ref), [`add`](@ref) and [`search`](@ref).
+For basic usage, see [`Index`](@ref), [`add`](@ref), [`search`](@ref), [`add_with_ids`](@ref), [`local_rank`](@ref).
 """
 module Faiss
 

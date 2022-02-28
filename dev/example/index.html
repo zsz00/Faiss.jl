@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>example · Faiss.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">Faiss.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li class="is-active"><a class="tocitem" href>example</a><ul class="internal"><li><a class="tocitem" href="#example-1"><span>example 1</span></a></li><li><a class="tocitem" href="#example-2"><span>example 2</span></a></li><li><a class="tocitem" href="#example-3"><span>example 3</span></a></li></ul></li><li><a class="tocitem" href="../apis/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>example</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>example</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/zsz00/Faiss.jl/blob/master/docs/src/example.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Faiss.jl-usage-examples"><a class="docs-heading-anchor" href="#Faiss.jl-usage-examples">Faiss.jl usage examples</a><a id="Faiss.jl-usage-examples-1"></a><a class="docs-heading-anchor-permalink" href="#Faiss.jl-usage-examples" title="Permalink"></a></h1><h2 id="example-1"><a class="docs-heading-anchor" href="#example-1">example 1</a><a id="example-1-1"></a><a class="docs-heading-anchor-permalink" href="#example-1" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Faiss
+
+println(&quot;faiss:&quot;, Faiss.faiss.__version__, &quot;, gpus:&quot;, ENV[&quot;CUDA_VISIBLE_DEVICES&quot;], 
+        &quot;, faiss path:&quot;, Faiss.faiss.__path__[0], &quot;, num_gpus:&quot;, Faiss.faiss.get_num_gpus())
+# Faiss.faiss.  Enter Tab to list faiss api
+
+feats = rand(10^4, 128);
+top_k = 10
+feat_dim = size(feats, 2)   # dimension
+idx = Index(feat_dim; str=&quot;IDMap2,Flat&quot;, metric=&quot;L2&quot;, gpus=&quot;4&quot;)  # init Faiss Index
+show(idx)   # show idx info
+
+vs_gallery = feats;
+vs_query = feats[1:100, :];
+ids = collect(range(1, size(feats, 1)))
+
+# add(idx, vs_gallery)
+add_with_ids(idx, vs_gallery, ids)
+D, I = search(idx, vs_query, top_k) 
+println(typeof(D), size(D))
+println(D[1:5, :])</code></pre><h2 id="example-2"><a class="docs-heading-anchor" href="#example-2">example 2</a><a id="example-2-1"></a><a class="docs-heading-anchor-permalink" href="#example-2" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Faiss
+
+feats = rand(10^4, 128);
+top_k = 10
+vs_gallery = feats;
+vs_query = feats[1:100, :];
+ids = collect(range(1, size(feats, 1)))
+
+D, I = local_rank(vs_query, vs_gallery, k=top_k, metric=&quot;IP&quot;, gpus=&quot;&quot;)
+
+println(typeof(D), size(D))
+println(D[1:5, :])
+</code></pre><h2 id="example-3"><a class="docs-heading-anchor" href="#example-3">example 3</a><a id="example-3-1"></a><a class="docs-heading-anchor-permalink" href="#example-3" title="Permalink"></a></h2><pre><code class="language-julia hljs">
+ENV[&quot;JULIA_PYTHONCALL_EXE&quot;] = &quot;/home/zhangyong/miniconda3/bin/python&quot;
+using Faiss
+using PythonCall
+using ProgressMeter
+# np = pyimport(&quot;numpy&quot;)
+
+
+function test()
+    dir_1 = &quot;/mnt/zy_data/data/longhu_1/sorted_2/&quot;
+    feats = np.load(joinpath(dir_1, &quot;feats.npy&quot;))
+    println(typeof(feats), feats.shape)
+    feats = pyconvert(Array{Float32, 2}, feats)
+    # D, I = local_rank(vs_query, vs_gallery, k=10, gpus=&quot;&quot;)
+
+    feat_dim = size(feats, 2)
+    idx = Index(feat_dim; str=&quot;IDMap2,Flat&quot;, metric=&quot;L2&quot;, gpus=&quot;4&quot;)  # IDMap2. L2,IP
+    Faiss.show(idx)
+    k = 10
+    @showprogress for i in range(1, 1000)
+        vs_gallery = feats[100*i+1:100*(i+1),:]
+        # println(typeof(feats), size(feats))
+        vs_query = vs_gallery
+        
+        # D, I = add_search(idx, vs_query, vs_gallery; k=10, flag=true, metric=&quot;cos&quot;)
+        # D, I = add_search_with_ids(idx, vs_query, vs_gallery; k=10)
+        ids = collect(range(100*i+1, 100*(i+1))) .+ 100
+        println(typeof(ids), size(ids))
+        add_with_ids(idx, vs_gallery, ids)
+        D, I = search(idx, vs_query, k) 
+        # println(typeof(D), size(D))
+        # println(typeof(I), size(I))
+    end
+end
+
+@time test()
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Introduction</a><a class="docs-footer-nextpage" href="../apis/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.13 on <span class="colophon-date" title="Monday 28 February 2022 10:29">Monday 28 February 2022</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

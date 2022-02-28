@@ -2,6 +2,7 @@
 
 ## example 1 
 ```julia
+ENV["JULIA_PYTHONCALL_EXE"] = "/home/zhangyong/miniconda3/bin/python"
 using Faiss
 
 println("faiss:", Faiss.faiss.__version__, ", gpus:", ENV["CUDA_VISIBLE_DEVICES"], 

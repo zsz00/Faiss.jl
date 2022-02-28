@@ -5,7 +5,7 @@ makedocs(;
     format=Documenter.HTML(),
     pages=[
         "Introduction" => "index.md",
-        "example" => "example.md",
+        "Example" => "example.md",
         "API" => "apis.md",
     ],
     repo="https://github.com/zsz00/Faiss.jl/blob/{commit}{path}#L{line}",

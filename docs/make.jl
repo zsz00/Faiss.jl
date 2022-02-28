@@ -5,8 +5,8 @@ makedocs(;
     format=Documenter.HTML(),
     pages=[
         "Introduction" => "index.md",
-        "API" => "apis.md",
         "example" => "example.md",
+        "API" => "apis.md",
     ],
     repo="https://github.com/zsz00/Faiss.jl/blob/{commit}{path}#L{line}",
     sitename="Faiss.jl",
@@ -15,5 +15,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/zsz00/Faiss.jl",
+    repo="github.com/zsz00/Faiss.jl.git",
 )

@@ -46,5 +46,6 @@ println(typeof(D), size(D))
 println(D[1:5, :])
 ```
 
-
 - [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
+
+

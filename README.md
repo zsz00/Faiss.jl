@@ -13,7 +13,10 @@ The package can be installed with the Julia package manager.
 From the Julia REPL, type `]` to enter the Pkg REPL mode and run:
 
 ```
-pkg> add Faiss
+pkg> add Faiss CondaPkg
+julia> using CondaPkg     # type ] to enter Pkg REPL mode
+pkg> conda status  
+pkg> conda install faiss-gpu cudatoolkit=11.2 -c pytorch  # 按需要安装对应版本的faiss
 ```
 if use a already existed python env, you can:
 ```

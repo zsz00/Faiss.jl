@@ -10,8 +10,8 @@ function test()
     feats = np.load(joinpath(dir_1, "feats.npy"))
     println(typeof(feats), feats.shape)
     # feats = PyArray{Float32, 2, true, true}(feats)
-    feats = pyconvert(Array{Float32, 2}, feats)
-    # D, I = local_rank(vs_query, vs_gallery, k=10, gpus="")
+    feats = pyconvert(Array{Float32, 2}, feats)  # py to julia Matrix
+    # D, I = local_rank(vs_query, vs_gallery, k=10, metric="IP", gpus="")
 
     feat_dim = size(feats, 2)
     idx = Index(feat_dim; str="IDMap2,Flat", metric="L2", gpus="4")  # IDMap2. L2,IP

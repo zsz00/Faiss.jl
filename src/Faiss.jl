@@ -202,7 +202,7 @@ function local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Int
     feat_dim = size(vs_query, 2)
     idx = Index(feat_dim; str=str, metric=metric, gpus=gpus)
     D, I = add_search(idx, vs_query, vs_gallery; k=k)
-    pydel!(idx.py)
+    # PythonCall.pydel!(idx.py)
     return (D, I)
 end
 

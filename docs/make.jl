@@ -16,4 +16,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/zsz00/Faiss.jl.git",
+    push_preview = true
 )

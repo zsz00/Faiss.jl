@@ -1,5 +1,6 @@
 # Faiss.jl
-
+ [![][docs-dev-img]][docs-dev-url]
+ 
 A simple Julia wrapper around the [Faiss](https://github.com/facebookresearch/Faiss) library for similarity search with [`PythonCall.jl`](https://github.com/cjdoris/PythonCall.jl).
 
 While functional and faster then [`NearestNeighbors.jl`](https://github.com/KristofferC/NearestNeighbors.jl).
@@ -51,5 +52,8 @@ println(D[1:5, :])
 
 ## Documentation
 
+- [**LATEST**][docs-dev-url] &mdash; *in-development version of the documentation.* (under construction)
 - [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
-- [**LATEST**](docs-dev-url) &mdash; *in-development version of the documentation.* (under construction)
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://zsz00.github.io/Faiss.jl/dev

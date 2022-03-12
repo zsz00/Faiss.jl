@@ -10,8 +10,7 @@ makedocs(;
     ],
     repo="https://github.com/zsz00/Faiss.jl/blob/{commit}{path}#L{line}",
     sitename="Faiss.jl",
-    authors="",
-    assets=String[],
+    authors="zsz00",
 )
 
 deploydocs(;

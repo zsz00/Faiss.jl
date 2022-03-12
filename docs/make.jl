@@ -2,7 +2,7 @@ using Documenter, Faiss
 
 makedocs(;
     modules=[Faiss],
-    format=Documenter.HTML(),
+    format=Documenter.HTML(edit_link="main"),
     pages=[
         "Introduction" => "index.md",
         "Example" => "example.md",
@@ -16,5 +16,6 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/zsz00/Faiss.jl.git",
+    devbranch = "main",
     push_preview = true
 )

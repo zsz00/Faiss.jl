@@ -71,10 +71,18 @@ function Index(dim::Integer; str::AbstractString="Flat", metric::String="L2", gp
     return Index(index)
 end
 
+"""
+    size(idx::Index)
+
+"""
 Base.size(idx::Index) = (size(idx, 1), size(idx, 2))
 
 Base.size(idx::Index, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ? pyconvert(Int, idx.py.ntotal) : error()
 
+"""
+    show(io::IO, ::MIME"text/plain", idx::Index)
+
+"""
 function Base.show(io::IO, ::MIME"text/plain", idx::Index)
     metric_dict = Dict(1=>"METRIC_L2", 2=>"METRIC_INNER_PRODUCT")
     println(io, typeof(idx), " of ", size(idx, 2), " vectors of dimension ", size(idx, 1), 

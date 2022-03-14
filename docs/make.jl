@@ -8,7 +8,6 @@ makedocs(;
         "Example" => "example.md",
         "API" => "apis.md",
     ],
-    repo="https://github.com/zsz00/Faiss.jl/blob/{commit}{path}#L{line}",
     sitename="Faiss.jl",
     authors="zsz00",
 )

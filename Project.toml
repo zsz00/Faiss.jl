@@ -1,7 +1,7 @@
 name = "Faiss"
 uuid = "97d83715-92a6-43f6-a1c3-b293f6dd920a"
 authors = ["Christopher Doris <github.com/cjdoris>"]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 CondaPkg = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
@@ -10,5 +10,5 @@ PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 
 [compat]
 CondaPkg = "0.2.6"
-PythonCall = "0.5"
+PythonCall = "0.5, 0.6"
 julia = "1.6"

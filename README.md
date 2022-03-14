@@ -52,8 +52,14 @@ println(D[1:5, :])
 
 ## Documentation
 
-- [**LATEST**][docs-dev-url] &mdash; *in-development version of the documentation.* (under construction)
+- [**LATEST**][docs-dev-url] &mdash; *in-development version of the documentation.* 
 - [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
+- [ann-benchmarks](http://ann-benchmarks.com/)
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://zsz00.github.io/Faiss.jl/dev
+
+## Relevant Pkgs
+- [NearestNeighbors.jl](https://github.com/KristofferC/NearestNeighbors.jl)
+- [SimilaritySearch.jl](https://github.com/sadit/SimilaritySearch.jl)
+- [Rayuela.jl](https://github.com/una-dinosauria/Rayuela.jl)

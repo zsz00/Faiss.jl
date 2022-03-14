@@ -11,20 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: '1'
-      
-      - uses: julia-actions/cache@v1
-      
-      - name: Install Julia dependencies
-        uses: julia-actions/julia-buildpkg@latest
-
-      - uses: julia-actions/julia-runtest@v1
-
-      - name: Install dependencies
-        run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
-      - name: Build and deploy
+      - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # If authenticating with GitHub Actions token

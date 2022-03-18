@@ -21,8 +21,9 @@ pkg> conda install faiss-gpu cudatoolkit=11.2 -c pytorch  # 按需要安装对�
 ```
 if use a already existed python env, you can:
 ```
-julia> ENV["JULIA_PYTHONCALL_EXE"] = "/your/path/of/python"
 pkg> add Faiss
+julia> ENV["JULIA_PYTHONCALL_EXE"] = "/your/path/of/python"
+julia> using Faiss
 ```
 
 ## usage

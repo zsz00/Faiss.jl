@@ -1,6 +1,6 @@
 name = "Faiss"
 uuid = "97d83715-92a6-43f6-a1c3-b293f6dd920a"
-authors = ["Christopher Doris <github.com/cjdoris>"]
+authors = ["zhangyong <github.com/zsz00>", "Christopher Doris <github.com/cjdoris>"]
 version = "0.3.0"
 
 [deps]

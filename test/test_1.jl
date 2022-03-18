@@ -2,6 +2,7 @@ ENV["JULIA_PYTHONCALL_EXE"] = "/home/zhangyong/miniconda3/bin/python"
 using Faiss
 using PythonCall
 using ProgressMeter
+using NearestNeighbors
 # np = pyimport("numpy")
 
 
@@ -38,8 +39,33 @@ function test()
     end
 end
 
+function faiss_test_1()
+    feats = rand(10^6, 128);
+    top_k = 100
+    vs_gallery = feats;
+    vs_query = feats[1:10^4, :];
 
-@time test()
+    D, I = local_rank(vs_query, vs_gallery, k=top_k, metric="IP", gpus="")
+
+    # println(typeof(D), size(D))
+    # println(D[1:5, :])
+end
+
+function nn_test()
+    data = rand(128, 10^6)
+    k = 100
+    query = rand(128, 10^4)
+
+    kdtree = KDTree(data)
+    idxs, dists = knn(kdtree, query, k, true)
+    # println(typeof(idxs), size(idxs))
+end
+
+
+# @time test()
+@time faiss_test_1()
+# @time nn_test()
+
 
 
 #=

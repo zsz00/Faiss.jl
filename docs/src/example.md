@@ -2,7 +2,7 @@
 
 ## example 1 
 ```julia
-ENV["JULIA_PYTHONCALL_EXE"] = "/home/zhangyong/miniconda3/bin/python"
+ENV["JULIA_PYTHONCALL_EXE"] = "/home/xx/miniconda3/bin/python"
 using Faiss
 
 println("faiss:", Faiss.faiss.__version__, ", gpus:", ENV["CUDA_VISIBLE_DEVICES"], 
@@ -27,34 +27,49 @@ println(D[1:5, :])
 ```
 
 ## example 2
+#### A simple test comparison
 ```julia
+ENV["JULIA_PYTHONCALL_EXE"] = "/home/xx/miniconda3/bin/python"
 using Faiss
+using NearestNeighbors
 
-feats = rand(10^4, 128);
-top_k = 10
-vs_gallery = feats;
-vs_query = feats[1:100, :];
-ids = collect(range(1, size(feats, 1)))
+function faiss_test_1()
+    feats = rand(10^6, 128);
+    top_k = 100
+    vs_gallery = feats;
+    vs_query = feats[1:10^4, :];
 
-D, I = local_rank(vs_query, vs_gallery, k=top_k, metric="IP", gpus="")
+    D, I = local_rank(vs_query, vs_gallery, k=top_k, metric="IP", gpus="")
+end
 
-println(typeof(D), size(D))
-println(D[1:5, :])
+function nn_test()
+    data = rand(128, 10^6)
+    k = 100
+    query = rand(128, 10^4)
 
+    kdtree = KDTree(data)
+    idxs, dists = knn(kdtree, query, k, true)
+end
+
+@time faiss_test_1()
+@time nn_test()
+
+used time in my machine (2022.3):
+28.934969 seconds (4.76 M allocations: 1.699 GiB, 0.14% gc time, 8.35% compilation time)
+1197.160527 seconds (1.26 M allocations: 2.981 GiB, 0.02% gc time, 0.12% compilation time)
 ```
 
 ## example 3
 ```julia
 
-ENV["JULIA_PYTHONCALL_EXE"] = "/home/zhangyong/miniconda3/bin/python"
+ENV["JULIA_PYTHONCALL_EXE"] = "/home/xx/miniconda3/bin/python"
 using Faiss
 using PythonCall
 using ProgressMeter
 # np = pyimport("numpy")
 
-
 function test()
-    dir_1 = "/mnt/zy_data/data/longhu_1/sorted_2/"
+    dir_1 = "/mnt/xx_data/data/longhu_1/sorted_2/"
     feats = np.load(joinpath(dir_1, "feats.npy"))
     println(typeof(feats), feats.shape)
     feats = pyconvert(Array{Float32, 2}, feats)
@@ -83,5 +98,4 @@ end
 @time test()
 
 ```
-
 

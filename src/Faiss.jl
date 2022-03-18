@@ -128,7 +128,7 @@ function remove_with_ids(idx::Index, ids::Array{Int64})
 end
 
 """
-    search(idx::Index, vs::AbstractMatrix, k::Integer)
+    search(idx::Index, vs::AbstractMatrix, k::Integer; threshold::Real=0.0)
 
 Search the index for the `k` nearest neighbours of each column of `vs`.
 
@@ -136,12 +136,13 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of
 distances.
 """
-function search(idx::Index, vs::AbstractMatrix, k::Integer)
+function search(idx::Index, vs::AbstractMatrix, k::Integer; threshold::Real=0.0)
     size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
     # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
     vs_ = convert(AbstractMatrix{Float32}, vs)
     vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
     k_ = convert(Int, k)
+    th_ = convert(Float32, threshold)
 
     if pyconvert(Int64, idx.py.ntotal) == 0
         size_1 = size(vs, 1)
@@ -151,7 +152,7 @@ function search(idx::Index, vs::AbstractMatrix, k::Integer)
             D = D .+ 2
         end
     else
-        D_, I_ = idx.py.search(vs_, k_)
+        D_, I_ = idx.py.search(vs_, k_, threshold=th_)
         D = pyconvert(Array{Float32, 2}, D_) 
         I = pyconvert(Array{Int32, 2}, I_)
     end
@@ -162,7 +163,7 @@ end
 
 """
     add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; 
-                k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
+                k::Integer=100, threshold::Real=0.0, flag::Bool=true)
 
 Add `vs_gallery` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
 
@@ -170,35 +171,35 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
 """
 function add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; 
-                    k::Integer=100, flag::Bool=true)
+                    k::Integer=100, threshold::Real=0.0, flag::Bool=true)
     if flag
         add(idx, vs_gallery)
     end
-    D, I = search(idx, vs_query, k) 
+    D, I = search(idx, vs_query, k; threshold=threshold) 
 
     return (D, I)
 end
 
 """
     add_search_with_ids(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
-                        k::Integer=100, flag::Bool=true, metric::AbstractString="cos")
+                        k::Integer=100, threshold::Real=0.0, flag::Bool=true)
 
 Add `vs_gallery` with `ids` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
 
 """
 function add_search_with_ids(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
-    k::Integer=100, flag::Bool=true)
+    k::Integer=100, threshold::Real=0.0, flag::Bool=true)
     if flag
         add_with_ids(idx, vs_gallery, ids)
     end
-    D, I = search(idx, vs_query, k) 
+    D, I = search(idx, vs_query, k; threshold=threshold) 
     
     return (D, I)
 end
 
 """
     local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
-                str::String="Flat", metric::String="L2", gpus::String="")
+                str::String="Flat", metric::String="L2", threshold::Real=0.0, gpus::String="")
 
 Create Index and Add `vs_gallery` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
 
@@ -206,10 +207,10 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
 """
 function local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
-                    str::String="Flat", metric::String="L2", gpus::String="")
+                    str::String="Flat", metric::String="L2", threshold::Real=0.0, gpus::String="")
     feat_dim = size(vs_query, 2)
     idx = Index(feat_dim; str=str, metric=metric, gpus=gpus)
-    D, I = add_search(idx, vs_query, vs_gallery; k=k)
+    D, I = add_search(idx, vs_query, vs_gallery; k=k, threshold=threshold)
     # PythonCall.pydel!(idx.py)
     return (D, I)
 end

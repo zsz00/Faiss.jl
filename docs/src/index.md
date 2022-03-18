@@ -13,15 +13,19 @@ The package can be installed with the Julia package manager.
 From the Julia REPL, type `]` to enter the Pkg REPL mode and run:
 
 ```
-pkg> add Faiss
+pkg> add Faiss CondaPkg
+julia> using CondaPkg     # type ] to enter Pkg REPL mode
+pkg> conda status  
+pkg> conda install faiss-gpu cudatoolkit=11.2 -c pytorch  # 按需要安装对应版本的faiss
 ```
 if use a already existed python env, you can:
 ```
-julia> ENV["JULIA_PYTHONCALL_EXE"] = "/your/path/of/python"
 pkg> add Faiss
-```
+julia> ENV["JULIA_PYTHONCALL_EXE"] = "/your/path/of/python"
+julia> using Faiss
 
-## usage
+## Usage
+
 ```julia
 using Faiss
 
@@ -46,6 +50,16 @@ println(typeof(D), size(D))
 println(D[1:5, :])
 ```
 
+## Documentation
+
+- [**LATEST**][docs-dev-url] &mdash; *in-development version of the documentation.* 
 - [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
+- [ann-benchmarks](http://ann-benchmarks.com/)
 
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://zsz00.github.io/Faiss.jl/dev
 
+## Relevant Pkgs
+- [NearestNeighbors.jl](https://github.com/KristofferC/NearestNeighbors.jl)
+- [SimilaritySearch.jl](https://github.com/sadit/SimilaritySearch.jl)
+- [Rayuela.jl](https://github.com/una-dinosauria/Rayuela.jl)

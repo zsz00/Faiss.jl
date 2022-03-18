@@ -54,7 +54,7 @@ end
 @time faiss_test_1()
 @time nn_test()
 
-used time in my machine (2022.3):
+used time on my machine (2022.3):
 28.934969 seconds (4.76 M allocations: 1.699 GiB, 0.14% gc time, 8.35% compilation time)
 1197.160527 seconds (1.26 M allocations: 2.981 GiB, 0.02% gc time, 0.12% compilation time)
 ```

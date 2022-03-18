@@ -1,7 +1,7 @@
 name = "Faiss"
 uuid = "97d83715-92a6-43f6-a1c3-b293f6dd920a"
 authors = ["zhangyong <github.com/zsz00>", "Christopher Doris <github.com/cjdoris>"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 CondaPkg = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"

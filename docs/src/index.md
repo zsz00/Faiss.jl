@@ -12,17 +12,18 @@ Faiss is a library for efficient similarity search and clustering of dense vecto
 The package can be installed with the Julia package manager.
 From the Julia REPL, type `]` to enter the Pkg REPL mode and run:
 
-```
+```julia
 pkg> add Faiss CondaPkg
 julia> using CondaPkg     # type ] to enter Pkg REPL mode
 pkg> conda status  
 pkg> conda install faiss-gpu cudatoolkit=11.2 -c pytorch  # 按需要安装对应版本的faiss
 ```
 if use a already existed python env, you can:
-```
+```julia
 pkg> add Faiss
 julia> ENV["JULIA_PYTHONCALL_EXE"] = "/your/path/of/python"
 julia> using Faiss
+```
 
 ## Usage
 

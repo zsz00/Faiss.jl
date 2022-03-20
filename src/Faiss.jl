@@ -18,13 +18,6 @@ function __init__()
     PythonCall.pycopy!(np, pyimport("numpy"))
 end
 
-"""
-    Index(dim, spec="Flat")
-
-Create a Faiss index of the given dimension.
-
-The `spec` is an index factory string describing the type of index to construct.
-"""
 struct Index
     py::Py
 end
@@ -33,7 +26,16 @@ end
 Index(dim::Integer, str::AbstractString="Flat", metric::Integer=1) = 
     Index(faiss.index_factory(convert(Int, dim), convert(String, str), metric))
 
+"""
+    Index(dim::Integer; str::AbstractString="Flat", metric::String="L2", gpus::String="")
 
+Create a Faiss index of the given dimension and factory string.
+The `dim` is denote dimension of data to Index.
+The `str` is an index factory string describing the type of index to construct. 
+reference: [index-factory](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
+The `metric` is a metric of distance, have "L2", "IP"
+The `gpus` is a string of setting gpu id. if "" denote use cpu.
+"""
 function Index(dim::Integer; str::AbstractString="Flat", metric::String="L2", gpus::String="")
     # feat数据存储在这里面. 数据量巨大时,容易爆显存
     ENV["CUDA_VISIBLE_DEVICES"] = gpus

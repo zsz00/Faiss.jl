@@ -52,7 +52,7 @@ println(D[1:5, :])
 ```
 
 ## Documentation
-- [**LATEST**](https://zsz00.github.io/Faiss.jl/dev)
+- [**LATEST Doc**](https://zsz00.github.io/Faiss.jl/dev)
 - [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
 - [ann-benchmarks](http://ann-benchmarks.com/)
 

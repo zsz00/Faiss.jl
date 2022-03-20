@@ -29,7 +29,7 @@ Index(dim::Integer, str::AbstractString="Flat", metric::Integer=1) =
 """
     Index(dim::Integer; str::AbstractString="Flat", metric::String="L2", gpus::String="")
 
-Create a Faiss index of the given dimension and factory string.
+Create a Faiss index of the given parameters:
 - The `dim` is denote dimension of data to Index.
 - The `str` is an index factory string describing the type of index to construct. reference:[index-factory](https://github.com/facebookresearch/faiss/wiki/The-index-factory)
 - The `metric` is a metric of distance, have "L2", "IP"

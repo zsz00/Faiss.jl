@@ -3,30 +3,31 @@
  
 A simple Julia wrapper around the [Faiss](https://github.com/facebookresearch/Faiss) library for similarity search with [`PythonCall.jl`](https://github.com/cjdoris/PythonCall.jl).
 
-While functional and faster then [`NearestNeighbors.jl`](https://github.com/KristofferC/NearestNeighbors.jl).
+While functional and faster than [`NearestNeighbors.jl`](https://github.com/KristofferC/NearestNeighbors.jl).
 
 Faiss is a library for efficient similarity search and clustering of dense vectors. It contains algorithms that search in sets of vectors of any size, up to ones that possibly do not fit in RAM. It also contains supporting code for evaluation and parameter tuning. Faiss is written in C++ with complete wrappers for Python/numpy. Some of the most useful algorithms are implemented on the GPU. It is developed primarily at Facebook AI Research.
 
 
 ## Installation
-
 The package can be installed with the Julia package manager.
 From the Julia REPL, type `]` to enter the Pkg REPL mode and run:
 
 ```
 pkg> add Faiss CondaPkg
 julia> using CondaPkg     # type ] to enter Pkg REPL mode
-pkg> conda status  
-pkg> conda install faiss-gpu cudatoolkit=11.2 -c pytorch  # 按需要安装对应版本的faiss
+pkg> conda status
+pkg> conda add -c pytorch
+pkg> conda add faiss-gpu cudatoolkit=11.2  # Install a specific version of faiss based on your need.
 ```
-if use a already existed python env, you can:
+
+If using an already existing Python env, you can:
 ```
 pkg> add Faiss
 julia> ENV["JULIA_PYTHONCALL_EXE"] = "/your/path/of/python"
 julia> using Faiss
 ```
 
-## usage
+## Usage
 ```julia
 using Faiss
 
@@ -52,7 +53,6 @@ println(D[1:5, :])
 ```
 
 ## Documentation
-
 - [**LATEST**][docs-dev-url] &mdash; *in-development version of the documentation.* 
 - [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
 - [ann-benchmarks](http://ann-benchmarks.com/)

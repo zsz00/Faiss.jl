@@ -17,7 +17,7 @@ pkg> add Faiss CondaPkg
 julia> using CondaPkg     # type ] to enter Pkg REPL mode
 pkg> conda status
 pkg> conda add -c pytorch
-pkg> conda add faiss-gpu cudatoolkit=11.2
+pkg> conda add faiss-gpu cudatoolkit=11.2  # Install a specific version of faiss based on your need.
 ```
 
 If using an already existing Python env, you can:

@@ -100,18 +100,18 @@ function main()
 	@show faissindextime
 	
 	@info "== SearchGraph"
-	# sI, sD, simtime = if isfile(simfile)
-	# 	load(simfile, "sI", "sD", "simtime")
-	# else
-	# 	simtime = @elapsed sI, sD = simsearch_test(X, Q, k, dist)
-	# 	jldsave(simfile; sI, sD, simtime)
-	# 	sI, sD, simtime
-	# end
-	# @show simtime
+	sI, sD, simtime = if isfile(simfile)
+		load(simfile, "sI", "sD", "simtime")
+	else
+		simtime = @elapsed sI, sD = simsearch_test(X, Q, k, dist)
+		jldsave(simfile; sI, sD, simtime)
+		sI, sD, simtime
+	end
+	@show simtime
 	
 	@show faisstime => macrorecall(gI, fI)
 	@show faissindextime => macrorecall(gI, fiI)
-	# @show simtime => macrorecall(gI, sI)
+	@show simtime => macrorecall(gI, sI)
 
 	println(Pkg.status())
 end
@@ -120,7 +120,7 @@ main()
 
 
 #=
-export 
+export JULIA_NUM_THREADS=40
 julia --project=/home/zhangyong/codes/Faiss.jl/Project.toml "/home/zhangyong/codes/Faiss.jl/test/test_2.jl"
 
 32
@@ -138,7 +138,7 @@ faisstime => macrorecall(gI, fI) = 28.228652428 => 1.0
 faissindextime => macrorecall(gI, fiI) = 244.810945869 => 0.11100999999999987
 simtime => macrorecall(gI, sI) = 88.660722975 => 0.40738999999999975
 
-64   l2
+64   L2
 faisstime => macrorecall(gI, fI) = 28.117816367 => 0.99999
 faissindextime => macrorecall(gI, fiI) = 132.110294344 => 0.08639999999999981
 

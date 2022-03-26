@@ -37,10 +37,7 @@ function faiss_index(X, Q, k)
 	add(idx, permutedims(X))
 	D, I = Faiss.search(idx, permutedims(Q), k)
 	I, D = permutedims(I), permutedims(D)
-	I .+= 1
-	println(D[:,1])
 	I, D
-	
 end
 
 function faiss_test(X, Q, k)
@@ -48,7 +45,6 @@ function faiss_test(X, Q, k)
      vs_query = permutedims(Q)
      D, I = local_rank(vs_query, vs_gallery, k=k, metric="IP", gpus="")
      I, D = permutedims(I), permutedims(D)
-	 I .+= 1
 	 I, D
 end
 

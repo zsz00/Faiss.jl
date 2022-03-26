@@ -8,7 +8,8 @@ For basic usage, see [`Index`](@ref), [`add`](@ref), [`search`](@ref), [`add_wit
 module Faiss
 
 using PythonCall
-export np, Index, add, search, add_with_ids, remove_with_ids, add_search, local_rank, add_search_with_ids
+export np, Index, add, search, range_search, add_with_ids, remove_with_ids, add_search, 
+local_rank, add_search_with_ids
 
 const faiss = PythonCall.pynew()
 const np = PythonCall.pynew()
@@ -19,6 +20,10 @@ function __init__()
 end
 
 struct Index
+    py::Py
+end
+
+struct IndexIDMap
     py::Py
 end
 
@@ -69,16 +74,21 @@ function Index(dim::Integer; str::AbstractString="Flat", metric::String="L2", gp
     else
         index = faiss.index_cpu_to_all_gpus(cpu_index)  # use all gpus
     end
-    return Index(index)
+
+    if "IDMap2" in str_list || "IDMap" in str_list
+        return IndexIDMap(index)
+    else
+        return Index(index)
+    end
 end
 
 """
-    size(idx::Index)
+    size(idx::Union{Index, IndexIDMap})
 
 """
-Base.size(idx::Index) = (size(idx, 1), size(idx, 2))
+Base.size(idx::Union{Index, IndexIDMap}) = (size(idx, 1), size(idx, 2))
 
-Base.size(idx::Index, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ? pyconvert(Int, idx.py.ntotal) : error()
+Base.size(idx::Union{Index, IndexIDMap}, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ? pyconvert(Int, idx.py.ntotal) : error()
 
 """
     show(io::IO, ::MIME"text/plain", idx::Index)
@@ -105,10 +115,10 @@ function add(idx::Index, vs::AbstractMatrix)
 end
 
 """
-    add_with_ids(idx::Index, vs::AbstractMatrix, ids::Array{Int64})
+    add_with_ids(idx::IndexIDMap, vs::AbstractMatrix, ids::Array{Int64})
 
 """
-function add_with_ids(idx::Index, vs::AbstractMatrix, ids::Array{Int64})
+function add_with_ids(idx::IndexIDMap, vs::AbstractMatrix, ids::Array{Int64})
     size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
     size(vs, 1) == size(ids, 1) || error("expecting $(size(vs, 1)) rows")
     # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
@@ -120,16 +130,16 @@ function add_with_ids(idx::Index, vs::AbstractMatrix, ids::Array{Int64})
 end
 
 """
-    remove_with_ids(idx::Index, ids::Array{Int64})
+    remove_with_ids(idx::IndexIDMap, ids::Array{Int64})
 
 """
-function remove_with_ids(idx::Index, ids::Array{Int64})
+function remove_with_ids(idx::IndexIDMap, ids::Array{Int64})
     ids_ = np.array(pyrowlist(ids), dtype=np.int64)
     idx.py.remove_ids(ids_)
 end
 
 """
-    search(idx::Index, vs::AbstractMatrix, k::Integer; threshold::Real=0.0)
+    search(idx::Union{Index, IndexIDMap}, vs::AbstractMatrix, k::Integer)
 
 Search the index for the `k` nearest neighbours of each column of `vs`.
 
@@ -137,13 +147,12 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of
 distances.
 """
-function search(idx::Index, vs::AbstractMatrix, k::Integer; threshold::Real=0.0)
+function search(idx::Union{Index, IndexIDMap}, vs::AbstractMatrix, k::Integer)
     size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
     # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
     vs_ = convert(AbstractMatrix{Float32}, vs)
     vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
     k_ = convert(Int, k)
-    th_ = convert(Float32, threshold)
 
     if pyconvert(Int64, idx.py.ntotal) == 0
         size_1 = size(vs, 1)
@@ -153,7 +162,7 @@ function search(idx::Index, vs::AbstractMatrix, k::Integer; threshold::Real=0.0)
             D = D .+ 2
         end
     else
-        D_, I_ = idx.py.search(vs_, k_, threshold=th_)
+        D_, I_ = idx.py.search(vs_, k_)
         D = pyconvert(Array{Float32, 2}, D_) 
         I = pyconvert(Array{Int32, 2}, I_)
     end
@@ -161,10 +170,32 @@ function search(idx::Index, vs::AbstractMatrix, k::Integer; threshold::Real=0.0)
     return (D, I)
 end
 
+"""
+    range_search(idx::Union{Index, IndexIDMap}, vs::AbstractMatrix, threshold::Real=0.0)
+
+Search the index for the distance < radius neighbours of each column of `vs`.
+
+Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k` nearest
+neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of
+distances.
+"""
+function range_search(idx::Union{Index, IndexIDMap}, vs::AbstractMatrix, threshold::Real=0.0)
+    size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
+    # vs_ = Py(convert(AbstractMatrix{Float32}, vs)').__array__()
+    vs_ = convert(AbstractMatrix{Float32}, vs)
+    vs_ = np.array(pyrowlist(vs_), dtype=np.float32)
+    th_ = convert(Float32, threshold)
+
+    lims, D_, I_ = idx.py.range_search(vs_, thresh=th_)
+    D = pyconvert(Array{Float32, 1}, D_) 
+    I = pyconvert(Array{Int32, 1}, I_)
+
+    return (D, I)
+end
 
 """
     add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; 
-                k::Integer=100, threshold::Real=0.0, flag::Bool=true)
+                k::Integer=100, flag::Bool=true)
 
 Add `vs_gallery` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
 
@@ -172,35 +203,35 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
 """
 function add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; 
-                    k::Integer=100, threshold::Real=0.0, flag::Bool=true)
+                    k::Integer=100, flag::Bool=true)
     if flag
         add(idx, vs_gallery)
     end
-    D, I = search(idx, vs_query, k; threshold=threshold) 
+    D, I = search(idx, vs_query, k) 
 
     return (D, I)
 end
 
 """
-    add_search_with_ids(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
-                        k::Integer=100, threshold::Real=0.0, flag::Bool=true)
+    add_search_with_ids(idx::IndexIDMap, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
+                        k::Integer=100, flag::Bool=true)
 
 Add `vs_gallery` with `ids` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
 
 """
-function add_search_with_ids(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
-    k::Integer=100, threshold::Real=0.0, flag::Bool=true)
+function add_search_with_ids(idx::IndexIDMap, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
+    k::Integer=100, flag::Bool=true)
     if flag
         add_with_ids(idx, vs_gallery, ids)
     end
-    D, I = search(idx, vs_query, k; threshold=threshold) 
+    D, I = search(idx, vs_query, k) 
     
     return (D, I)
 end
 
 """
     local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
-                str::String="Flat", metric::String="L2", threshold::Real=0.0, gpus::String="")
+                str::String="Flat", metric::String="L2", gpus::String="")
 
 Create Index and Add `vs_gallery` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
 
@@ -208,10 +239,10 @@ Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k`
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
 """
 function local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
-                    str::String="Flat", metric::String="L2", threshold::Real=0.0, gpus::String="")
+                    str::String="Flat", metric::String="L2", gpus::String="")
     feat_dim = size(vs_query, 2)
     idx = Index(feat_dim; str=str, metric=metric, gpus=gpus)
-    D, I = add_search(idx, vs_query, vs_gallery; k=k, threshold=threshold)
+    D, I = add_search(idx, vs_query, vs_gallery; k=k)
     # PythonCall.pydel!(idx.py)
     return (D, I)
 end

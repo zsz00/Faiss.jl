@@ -50,9 +50,10 @@ D, I = search(idx, vs_query, top_k)
 println(typeof(D), size(D))
 println(D[1:5, :])
 ```
+**note: if you want to use add_with_ids or remove_with_id, str mast contain IDMap2. Otherwise, not contain IDMap2** 
 
 ## Documentation
-- [**LATEST Doc**](https://zsz00.github.io/Faiss.jl/dev)
+- [**Latest Doc**](https://zsz00.github.io/Faiss.jl/dev)
 - [Faiss wiki](https://github.com/facebookresearch/faiss/wiki)
 - [ann-benchmarks](http://ann-benchmarks.com/)
 

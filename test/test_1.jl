@@ -15,7 +15,7 @@ function test()
     # D, I = local_rank(vs_query, vs_gallery, k=10, metric="IP", gpus="")
 
     feat_dim = size(feats, 2)
-    idx = Index(feat_dim; str="IDMap2,Flat", metric="L2", gpus="4")  # IDMap2. L2,IP
+    idx = Index(feat_dim; str="IDMap,Flat", metric="IP", gpus="4")  # IDMap2. L2,IP
     Faiss.show(idx)
     k = 10
     @showprogress for i in range(1, 1000)
@@ -23,12 +23,13 @@ function test()
         # println(typeof(feats), size(feats))
         vs_query = vs_gallery
         
-        # D, I = add_search(idx, vs_query, vs_gallery; k=10, flag=true, metric="cos")
-        # D, I = add_search_with_ids(idx, vs_query, vs_gallery; k=10)
+        # D, I = add_search(idx, vs_query, vs_gallery; k=10, flag=true)
+        
         ids = collect(range(100*i+1, 100*(i+1))) .+ 100
-        println(typeof(ids), size(ids))
-        add_with_ids(idx, vs_gallery, ids)
-        D, I = search(idx, vs_query, k) 
+        D, I = add_search_with_ids(idx, vs_query, vs_gallery, ids; k=10)
+        # println(typeof(ids), size(ids))
+        # add_with_ids(idx, vs_gallery, ids)
+        # D, I = search(idx, vs_query, k) 
         # println(typeof(D), size(D))
         # println(typeof(I), size(I))
         if i == 2
@@ -62,11 +63,29 @@ function nn_test()
 end
 
 
+function faiss_test_2()
+    feats = rand(10^4, 128);
+    top_k = 100
+    vs_gallery = feats;
+    vs_query = feats[1:10^2, :];
+
+    feat_dim = size(feats, 2)
+    idx = Index(feat_dim; str="Flat", metric="IP", gpus="")  # IDMap2. L2,IP  IDMap2,
+    Faiss.show(idx)
+    k = 10
+
+    add(idx, vs_gallery)
+    # D, I = search(idx, vs_query, k) 
+    D, I = range_search(idx, vs_query, 20) 
+    println(size(D))
+    # println(D[1:5, :])
+end
+
+
 # @time test()
-@time faiss_test_1()
+# @time faiss_test_1()
 # @time nn_test()
-
-
+@time faiss_test_2()
 
 #=
 julia --project=/home/zhangyong/codes/Faiss.jl/Project.toml "/home/zhangyong/codes/Faiss.jl/test/test_1.jl"
@@ -76,6 +95,9 @@ cpu: bs=100,k=10
 gpu: bs=100,k=10
 25.010865 seconds (6.38 M allocations: 797.798 MiB, 1.01% gc time, 14.27% compilation time)
 
+
+add does not make sense with IndexIDMap, use add_with_ids
+IndexIDMap 只支持add_with_ids?
 
 =#
 

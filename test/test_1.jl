@@ -62,7 +62,6 @@ function nn_test()
     # println(typeof(idxs), size(idxs))
 end
 
-
 function faiss_test_2()
     feats = rand(10^4, 128);
     top_k = 100
@@ -72,13 +71,12 @@ function faiss_test_2()
     feat_dim = size(feats, 2)
     idx = Index(feat_dim; str="Flat", metric="IP", gpus="")  # IDMap2. L2,IP  IDMap2,
     Faiss.show(idx)
-    k = 10
 
     add(idx, vs_gallery)
-    # D, I = search(idx, vs_query, k) 
-    D, I = range_search(idx, vs_query, 20) 
+    D, I = search(idx, vs_query, top_k) 
+    # D, I = range_search(idx, vs_query, 20) 
     println(size(D))
-    # println(D[1:5, :])
+    println(I[1:5, :])
 end
 
 

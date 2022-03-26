@@ -88,7 +88,8 @@ end
 """
 Base.size(idx::Union{Index, IndexIDMap}) = (size(idx, 1), size(idx, 2))
 
-Base.size(idx::Union{Index, IndexIDMap}, i::Integer) = i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ? pyconvert(Int, idx.py.ntotal) : error()
+Base.size(idx::Union{Index, IndexIDMap}, i::Integer) = 
+    i == 1 ? pyconvert(Int, idx.py.d) : i == 2 ? pyconvert(Int, idx.py.ntotal) : error()
 
 """
     show(io::IO, ::MIME"text/plain", idx::Index)
@@ -144,8 +145,7 @@ end
 Search the index for the `k` nearest neighbours of each column of `vs`.
 
 Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k` nearest
-neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of
-distances.
+neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
 """
 function search(idx::Union{Index, IndexIDMap}, vs::AbstractMatrix, k::Integer)
     size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
@@ -166,7 +166,7 @@ function search(idx::Union{Index, IndexIDMap}, vs::AbstractMatrix, k::Integer)
         D = pyconvert(Array{Float32, 2}, D_) 
         I = pyconvert(Array{Int32, 2}, I_)
     end
-
+    I = I .+ 1
     return (D, I)
 end
 
@@ -176,8 +176,7 @@ end
 Search the index for the distance < radius neighbours of each column of `vs`.
 
 Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k` nearest
-neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of
-distances.
+neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.
 """
 function range_search(idx::Union{Index, IndexIDMap}, vs::AbstractMatrix, threshold::Real=0.0)
     size(vs, 2) == size(idx, 1) || error("expecting $(size(idx, 1)) rows")
@@ -189,7 +188,7 @@ function range_search(idx::Union{Index, IndexIDMap}, vs::AbstractMatrix, thresho
     lims, D_, I_ = idx.py.range_search(vs_, thresh=th_)
     D = pyconvert(Array{Float32, 1}, D_) 
     I = pyconvert(Array{Int32, 1}, I_)
-
+    I = I .+ 1
     return (D, I)
 end
 
@@ -233,7 +232,8 @@ end
     local_rank(vs_query::AbstractMatrix, vs_gallery::AbstractMatrix; k::Integer=10, 
                 str::String="Flat", metric::String="L2", gpus::String="")
 
-Create Index and Add `vs_gallery` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
+Create Index and Add `vs_gallery` to idx and Search the index for the `k` nearest neighbours of each 
+column of `vs_query`.
 
 Return `(D, I)` where `I` is a matrix where each column gives the ids of the `k` nearest
 neighbours of the corresponding column of `vs` and `D` is the corresponding matrix of distances.

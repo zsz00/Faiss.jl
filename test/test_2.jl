@@ -28,16 +28,15 @@ end
 
 function faiss_index(X, Q, k)
 	dim, n = size(X)
-	str = "HNSW,Flat"
+	str = "HNSW64,Flat"  # HNSW32
 	# str = "Flat"
-	metric = "IP"
+	metric = "L2"  # L2  IP
 	gpus = ""
 	idx = Faiss.Index(dim; str, metric, gpus)  # init Faiss Index
 	show(idx)   # show idx info
 	add(idx, permutedims(X))
 	D, I = Faiss.search(idx, permutedims(Q), k)
 	I, D = permutedims(I), permutedims(D)
-	I .+= 1
 	I, D
 end
 
@@ -46,7 +45,6 @@ function faiss_test(X, Q, k)
      vs_query = permutedims(Q)
      D, I = local_rank(vs_query, vs_gallery, k=k, metric="IP", gpus="")
      I, D = permutedims(I), permutedims(D)
-	 I .+= 1
 	 I, D
 end
 
@@ -118,7 +116,26 @@ main()
 
 
 #=
+export JULIA_NUM_THREADS=40
 julia --project=/home/zhangyong/codes/Faiss.jl/Project.toml "/home/zhangyong/codes/Faiss.jl/test/test_2.jl"
 
+32
+faisstime => macrorecall(gI, fI) = 28.542211967 => 1.0
+faissindextime => macrorecall(gI, fiI) = 72.467151637 => 0.05765999999999996
+simtime => macrorecall(gI, sI) = 1794.894965328 => 0.4336100000000001
+
+64
+faisstime => macrorecall(gI, fI) = 28.064558278 => 0.99997
+faissindextime => macrorecall(gI, fiI) = 131.294182817 => 0.08665999999999986
+simtime => macrorecall(gI, sI) = 88.273946672 => 0.4000899999999998
+
+128
+faisstime => macrorecall(gI, fI) = 28.228652428 => 1.0
+faissindextime => macrorecall(gI, fiI) = 244.810945869 => 0.11100999999999987
+simtime => macrorecall(gI, sI) = 88.660722975 => 0.40738999999999975
+
+64   L2
+faisstime => macrorecall(gI, fI) = 28.117816367 => 0.99999
+faissindextime => macrorecall(gI, fiI) = 132.110294344 => 0.08639999999999981
 
 =#

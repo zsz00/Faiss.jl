@@ -51,6 +51,7 @@ D, I = search(idx, vs_query, top_k)
 println(typeof(D), size(D))
 println(D[1:5, :])
 ```
+**note: if use add_with_ids or remove_with_id str mast contain IDMap2, Otherwise use not contain IDMap2**
 
 ## Documentation
 - [**LATEST**][docs-dev-url] &mdash; *in-development version of the documentation.* 

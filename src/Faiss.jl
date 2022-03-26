@@ -83,7 +83,7 @@ function Index(dim::Integer; str::AbstractString="Flat", metric::String="L2", gp
 end
 
 """
-    size(idx::Index)
+    size(idx::Union{Index, IndexIDMap})
 
 """
 Base.size(idx::Union{Index, IndexIDMap}) = (size(idx, 1), size(idx, 2))
@@ -115,7 +115,7 @@ function add(idx::Index, vs::AbstractMatrix)
 end
 
 """
-    add_with_ids(idx::Index, vs::AbstractMatrix, ids::Array{Int64})
+    add_with_ids(idx::IndexIDMap, vs::AbstractMatrix, ids::Array{Int64})
 
 """
 function add_with_ids(idx::IndexIDMap, vs::AbstractMatrix, ids::Array{Int64})
@@ -130,7 +130,7 @@ function add_with_ids(idx::IndexIDMap, vs::AbstractMatrix, ids::Array{Int64})
 end
 
 """
-    remove_with_ids(idx::Index, ids::Array{Int64})
+    remove_with_ids(idx::IndexIDMap, ids::Array{Int64})
 
 """
 function remove_with_ids(idx::IndexIDMap, ids::Array{Int64})
@@ -139,7 +139,7 @@ function remove_with_ids(idx::IndexIDMap, ids::Array{Int64})
 end
 
 """
-    search(idx::Index, vs::AbstractMatrix, k::Integer)
+    search(idx::Union{Index, IndexIDMap}, vs::AbstractMatrix, k::Integer)
 
 Search the index for the `k` nearest neighbours of each column of `vs`.
 
@@ -213,7 +213,7 @@ function add_search(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMa
 end
 
 """
-    add_search_with_ids(idx::Index, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
+    add_search_with_ids(idx::IndexIDMap, vs_query::AbstractMatrix, vs_gallery::AbstractMatrix, ids::Array{Int64}; 
                         k::Integer=100, flag::Bool=true)
 
 Add `vs_gallery` with `ids` to idx and Search the index for the `k` nearest neighbours of each column of `vs_query`.
